@@ -1,32 +1,24 @@
-const
-  express       = require('express');           // the Express HTTP framework
-
-const enableWs = require('express-ws');
-
-const app = express();
-enableWs(app);
-
 
 const
-  async         = require('async'),
-  redis         = require('redis'),             // node_redis to manage the redis connection
-  client        = redis.createClient(),
+  redis             = require('redis'),             // node_redis to manage the redis connection
+  client            = redis.createClient(),
+  controlPlaneClient
+                    = client.duplicate(),
+  streamProcessor
+                    = require('./streamProcessor.js'),
+  _                 = require('lodash');  
 
-  EventEmitter  = require('eventemitter2').EventEmitter2,  // Allows for events with wildcards
-  evEmitter     = new EventEmitter({            // init event emitter
-    wildcard    : true
-  });
 
-var Twitter = require('twitter');
- 
-var tclient = new Twitter({
-  consumer_key: 'RyOzU27nldtMwaa3YI5TWSRlz',
-  consumer_secret: '3BXVzkyHWVIiijYk10gbJEU5btiJIJYnzk4T7pZrX6VxPUiZMc',
-  access_token_key: '1144750841716338688-1HdvQX5qvtujd3Kmx6iruBeOTTwWwK',
-  access_token_secret: 'e2TJst8YFglIh7djl5vempfwoF3rDHSnTbFU6coS0qlKp'
-});
+var 
 
-var stream = tclient.stream('statuses/filter', {track: 'trump'});
+  Twitter           = require('twitter'),
+  tclient           = new Twitter({
+      consumer_key: '',
+      consumer_secret: '',
+      access_token_key: '',
+      access_token_secret: ''}),
+  stream            = tclient.stream('statuses/filter', {track: 'trump'});
+
 
 stream.on('data', function(tweet) {
   // console.log(tweet);
@@ -73,57 +65,15 @@ stream.on('error', function (err) {
   console.error('Twitter Error', err);       
 });                                          
                                              
-async.forever(                       
-  function(done) {                           
-    client.xread(                     
-      'BLOCK',                          
-      5000,
-      'STREAMS',
-      'tweets',
-      '$',
-      // emit the payload should be here...ß
-      (el) => function(done) {                                                             
-      evEmitter.emit('tweet-data', el)  
-        done();  //need done() here
-      },
-      // test code
-      function(done) {                                        
-        evEmitter.emit('tweet-data', 'Sending to client'); 
-      }
-    );
-  },        
 
-  function(err) {  
-    throw err;                                // this should only happen if there is an error
-    // do more here                           // otherwise, throw.
+let elementProcessors = {                        // Element processor pattern. This listens to stream (control-plane-eater) with `xread` for a events
+  'tweets'   : (element) => function(done) {     // the element is the output from redis
+    let 
+      dataObj = _(element[1]).chunk(2).fromPairs().value(); // grab the data which is in interleaved array format (field, value, field value, ....) and convert to pairs and create an object out of it.
+    done();                                      // note that we're done and we can listen again.
   }
-);
+};
 
-app.ws('/',function(ws,req) {
-  console.log("Got here");
-  let proxyToWs = function(data) {  
-    ws.on('message', msg => {
-      if (ws.readyState === 1) {               // make sure the websocket is not closed
-        "use strict";
-        ws.send(JSON.stringify(data));
-        console.log("Sending data to client");
-        // the following are example code only 
-        // ws.send(data[1]);   
-        // ws.send(JSON.stringify(data.filter((ignore,i) => i % 2 ))); // send the data - we actually don't need the ranking (just the order), so we can filter out ever other result!
-      }
-    });  
-  };
+streamProcessor(controlPlaneClient,Object.keys(elementProcessors),elementProcessors);
 
-  evEmitter.on('tweet-data', proxyToWs); 
 
-  // this code is saved for later when front end initiates close connection
-  // ws.on('close', () => {                        // gracefully handle the closing of the websocket
-  //   evEmitter.off('tweet-data',proxyToWs);      // so we don't get closed socket responses
-  //   console.log('Connection closed')
-  // });
-
-});
-
-app                                             // our server app
-  .use(express.static(__dirname + '/static'))   // static pages (HTML)
-  .listen(4000, "127.0.0.1");
