@@ -20,10 +20,10 @@ const
 var Twitter = require('twitter');
  
 var tclient = new Twitter({
-  consumer_key: '',
-  consumer_secret: '',
-  access_token_key: '',
-  access_token_secret: ''
+  consumer_key: 'RyOzU27nldtMwaa3YI5TWSRlz',
+  consumer_secret: '3BXVzkyHWVIiijYk10gbJEU5btiJIJYnzk4T7pZrX6VxPUiZMc',
+  access_token_key: '1144750841716338688-1HdvQX5qvtujd3Kmx6iruBeOTTwWwK',
+  access_token_secret: 'e2TJst8YFglIh7djl5vempfwoF3rDHSnTbFU6coS0qlKp'
 });
 
 var stream = tclient.stream('statuses/filter', {track: 'trump'});
@@ -83,7 +83,7 @@ async.forever(
       '$',
       // emit the payload should be here...ß
       (el) => function(done) {                                                             
-      evEmitter.emit('tweet-data',...)  
+      evEmitter.emit('tweet-data', el)  
         done();  //need done() here
       },
       // test code
