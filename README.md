@@ -14,10 +14,15 @@ First, install the server-side Node modules with NPM
 $ npm install
 ```
 
-The Twitter eater, the `terms` argument is the keyword on which the demo will run - it works best with something high volume (politics, sports, etc). Right now it is hard coded with "trump" as search word.
+The Twitter eater, (in the future, the `terms` argument is the keyword on which the demo will run - it works best with something high volume like politics, sports, etc.) Right now it is hard coded with "trump" as search word.
 ```
 $ node twitter.eater.js
 ```
+
+Start server.node.js which streams to browser client.
+
+$ node server.node.js
+
 
 The service will launch on localhost:4000
 
