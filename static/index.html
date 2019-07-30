@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="theme-color" content="#000000">
+    <meta name="twitter:widgets:link-color" content="#cc0000">
+    <meta name="twitter:widgets:theme" content="light">
     <link href="css/common.css" rel="stylesheet">
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
@@ -22,117 +24,87 @@
             </span>
 
         </div>
-        <div id="tweets_area"></div>
-            <!-- <table>
-              <tr>
-                <th>User</th>
-                <th>Tweet</th>
-                <th>Mentions</th>
-                <th>Urls</th> 
-                <data-repeater data-values='[{"label": "Item 1", "id":1}, {"label": "Item 2", "id": 2}]'>
-                    <tr>
-                      <td id="${id}">${label}</td>
-                      <td id="${id}">${label}</td>
-                      <td id="${id}">${label}</td>
-                      <td id="${id}">${label}</td>                      
-                    </tr> 
-                </data-repeater>                 
-              </tr>
-            </table> -->
-        </div>
       </form>   
     <!-- <script> -->
 
     <div id="output"></div>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> 
     <script language="javascript" type="text/javascript">
-        // var ws = new WebSocket('ws://localhost:4000/tweet-data');
-        // var websocket = new WebSocket('ws://localhost:4000');
-        var form = document.querySelector('.form');
+      var form = document.querySelector('.form');
+      var output;
 
-    //     ws.onopen = function () {
-    //       console.log('Opened Connection');
-    //       writeToScreen("CONNECTED");
-    //       writeToScreen("SENT: WebSocket rocks");
-    //       websocket.send(message);
+      function init() {
+        output = document.getElementById("output");
+        testWebSocket();
+      }
 
+      function testWebSocket() {
+        websocket = new WebSocket('ws://localhost:4000');
+        websocket.onopen = function(evt) { onOpen(evt) };
+        websocket.onclose = function(evt) { onClose(evt) };
+        websocket.onmessage = function(evt) { onMessage(evt) };
+        websocket.onerror = function(evt) { onError(evt) };
+      }
 
-    //       // var msg = JSON.stringify({message: 'Hello'});
-    //       // ws.send(msg);
-    //     };
+      function onOpen(evt){
+        writeToScreen("CONNECTED");
+        doSend("WebSocket rocks");
+      }
 
-    //     ws.onmessage = function(event) {
-    //       // var response = event.data;
-    //       // console.log(event.data);
-    //       console.log('Data from server');
+      function onClose(evt) {
+        writeToScreen("DISCONNECTED");
+      }
 
-    //       writeToScreen('<span style="color: blue;">RESPONSE: ' + event.data+'</span>');
-    // websocket.close();
-    //       // CreateTableFromJSON(response);
-    //     };
+      function onMessage(evt) {
+        displayTweet(evt.data);
+        // websocket.close();
+      }
 
-    //     ws.close = function() {
-    //         console.log('Closed Connection');
-    //         writeToScreen("DISCONNECTED");
-    //     };
+      function onError(evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+      }
 
+      function doSend(message) {
+        writeToScreen("SENT: " + message);
+        websocket.send(message);
+      }
 
+      function writeToScreen(message) {
+        var pre = document.createElement("p");
+        if(typeof pre !=="undefined") {
+          pre.style.wordWrap = "break-word";
+          pre.innerHTML = message;
+          output.appendChild(pre);
+        }  
+      }
 
-  var output;
+      function displayTweet(message) {
+        var obj = JSON.parse(message);
+        // console.log(obj);
+        var id = obj.id;
+        var d_el = document.createElement("div");
 
-function init()
-{
-  output = document.getElementById("output");
-  testWebSocket();
-}
+        $(d_el).attr({
+          "id": "tweet",
+          "tweetID": obj.id
+        });
 
-function testWebSocket()
-{
-  websocket = new WebSocket('ws://localhost:4000');
-  websocket.onopen = function(evt) { onOpen(evt) };
-  websocket.onclose = function(evt) { onClose(evt) };
-  websocket.onmessage = function(evt) { onMessage(evt) };
-  websocket.onerror = function(evt) { onError(evt) };
-}
+        window.twttr.widgets.createTweet(
+          obj.id, d_el,
+          {
+            conversation  : 'none',
+            cards         : 'hidden',
+            // linkColor     : '#cc0000',
+            // thene         : 'light'
+          })
+          .then (function (el) {
+            // console.log('Tweet added.');
+            output.appendChild(el);
+          }
+        );
+      }
 
-function onOpen(evt)
-{
-  writeToScreen("CONNECTED");
-  doSend("WebSocket rocks");
-}
-
-function onClose(evt)
-{
-  writeToScreen("DISCONNECTED");
-}
-
-function onMessage(evt)
-{
-  writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
-  // websocket.close();
-}
-
-function onError(evt)
-{
-  writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-}
-
-function doSend(message)
-{
-  writeToScreen("SENT: " + message);
-  websocket.send(message);
-}
-
-function writeToScreen(message)
-{
-  var pre = document.createElement("p");
-  if(typeof pre !=="undefined") {
-    pre.style.wordWrap = "break-word";
-    pre.innerHTML = message;
-    output.appendChild(pre);
-  }  
-}
-
-window.addEventListener("load", init, false);
+      window.addEventListener("load", init, false);
 
     </script>  
     <script> src="client.js"</script>
