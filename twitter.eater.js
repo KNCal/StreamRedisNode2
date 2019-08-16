@@ -10,7 +10,6 @@ const
 
 
 var 
-
   Twitter           = require('twitter'),
   creds              = require('./creds.js');
   tclient           = new Twitter({
@@ -22,15 +21,12 @@ var
   stream            = tclient.stream('statuses/filter', {track: 'trump'});
 
 
-stream.on('data', function(tweet) {
-  // console.log(tweet);
-});
-
 let perSec = 0; 
 
 stream.on('data', function (tw) {             
     "use strict";
     perSec += 1;
+
     if (tw.entities != undefined) {                              
         let 
             tweetEntities = tw.entities,                        
@@ -78,5 +74,3 @@ let elementProcessors = {                             // Element processor patte
 };
 
 streamProcessor(controlPlaneClient,Object.keys(elementProcessors),elementProcessors);
-
-

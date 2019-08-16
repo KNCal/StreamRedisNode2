@@ -38,7 +38,8 @@ function streamToWebSocket(server, eventName, route, processFn, additionalFn) {
                 processFn.bind(this)(ws,req,data); // then we run the processing function with the correct `this` context and pass in the relevant information as arguments
             }
         };
-        evEmitter.on(eventName, proxyToWs);       // do the actual event assignment
+        evEmitter.on(eventName, proxyToWs);
+        evEmitter.emit(eventName);       // do the actual event assignment
         if (additionalFn) {                       // This is used for sending things back from the websocket
             additionalFn(ws,req);
         }
