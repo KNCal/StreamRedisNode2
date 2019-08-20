@@ -2,6 +2,10 @@
 
 This is a demo built using the demo from the RedisConf18 keynote written by Kyle Davis and shows how to use Redis Stream using NodeJS.
 
+Twitter Developer Credentials are needed to run this app. For information on getting credentials, go to https://developer.twitter.com/en/apply-for-access.html 
+
+The app stops reading after 100 tweets. Timeout logic can be added for cases when there are less than 100 tweets.
+
 This is a technology demo, not a reference architecture nor an example of best practices. While it might be possible to create a usable production system out of the ideas presented, it is not hardened in any way.
 
 
@@ -14,18 +18,19 @@ First, install the server-side Node modules with NPM
 $ npm install
 ```
 
-The Twitter eater, (in the future, the `terms` argument is the keyword on which the demo will run - it works best with something high volume like politics, sports, etc.) Right now it is hard coded with "trump" as search word.
+Second, edit creds.js to include your credentials (consumer_key, consumer_secret, access_token_key, access_token_secret)
+
+
+Third, start server.node.js which streams to browser client.
+```
+$ node server.node.js
+```
+Open the browser and launch localhost:4000
+
+Fourth, start the Twitter eater, (in the future, the `terms` argument is the keyword on which the demo will run - it works best with something high volume like politics, sports, etc.) Right now it is hard coded with "trump" as search word.
 ```
 $ node twitter.eater.js
 ```
-
-Start server.node.js which streams to browser client.
-
-$ node server.node.js
-
-
-The service will launch on localhost:4000
-
 
 ## License
 
