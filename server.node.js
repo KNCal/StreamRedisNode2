@@ -14,6 +14,7 @@ const
 enableWs(app);
 
 let
+    streamClient = redis.createClient(),
     elementProcessors = {                                   // our element processors  
         'tweets'    : (el) => function(done) {              // Here we're bouncing the stream for search results...
             evEmitter.emit('tweets', el[1]);
